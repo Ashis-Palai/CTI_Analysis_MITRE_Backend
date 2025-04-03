@@ -5,6 +5,8 @@ import os
 
 app = Flask(__name__)
 
+CORS(app, origins=["https://ashis-palai.github.io"])
+
 # Load the MITRE ATT&CK dataset
 with open("enterprise-attack.json", "r", encoding="utf-8") as f:
     attack_data = json.load(f)
