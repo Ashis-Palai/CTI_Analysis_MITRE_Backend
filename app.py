@@ -3,6 +3,7 @@ import json
 import re
 import os
 from flask_cors import CORS
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -49,24 +50,57 @@ def get_attack_pattern_details(attack_pattern_id):
 
 # Generate MITRE Navigator JSON
 def generate_navigator_json(apt_ttps):
-    color_mapping = ["#FF5733", "#33FF57", "#3357FF"]
-    navigator_data = {"version": "2.2", "domain": "enterprise-attack", "techniques": []}
+    color_mapping = ["#FF5733", "#33FF57", "#3357FF"]  # Unique colors for APT groups
+    overlap_color = "#FFFF00"  # Yellow for overlapping techniques
 
-    # Determine overlapping and distinct TTPs
+    navigator_data = {
+        "name": "APT Comparison Layer",
+        "version": "4.5",  # Updated for MITRE Navigator
+        "domain": "enterprise-attack",
+        "description": "TTPs comparison of selected APT groups",
+        "techniques": [],
+        "gradient": {
+            "colors": color_mapping + [overlap_color],  # Include overlap color in legend
+            "minValue": 1,
+            "maxValue": 5
+        },
+        "legendItems": [],
+        "metadata": [
+            {"name": "Created By", "value": "Automated Script"},
+            {"name": "Date", "value": datetime.utcnow().strftime("%Y-%m-%d")}
+        ],
+        "showTacticRowBackground": True,
+        "tacticRowBackground": "#f4f4f4",
+        "selectTechniquesAcrossTactics": True,
+        "layout": {"layout": "side", "showName": True, "showID": True}
+    }
+
+    # Identify unique and overlapping techniques
     all_ttps = set().union(*apt_ttps.values())
     overlap_ttps = set.intersection(*apt_ttps.values()) if len(apt_ttps) > 1 else set()
-    
+
     for i, (apt, ttps) in enumerate(apt_ttps.items()):
+        color = color_mapping[i % len(color_mapping)]  # Cycle colors if more groups than colors
         for ttp in ttps:
             technique = {
                 "techniqueID": ttp,
-                "color": "#FFFF00" if ttp in overlap_ttps else color_mapping[i],
+                "score": 5 if ttp in overlap_ttps else 3,  # Higher score for overlapping
+                "color": overlap_color if ttp in overlap_ttps else color,
                 "comment": f"Used by {apt}"
             }
             navigator_data["techniques"].append(technique)
-    
+
+        # Add legend for each APT group
+        navigator_data["legendItems"].append({"label": f"{apt} TTPs", "color": color})
+
+    # Add legend entry for common techniques
+    if overlap_ttps:
+        navigator_data["legendItems"].append({"label": "Common TTPs", "color": overlap_color})
+
+    # Save the JSON file
     with open("navigator.json", "w", encoding="utf-8") as f:
         json.dump(navigator_data, f, indent=4)
+
     return "navigator.json"
 
 @app.route("/compare", methods=["POST"])
