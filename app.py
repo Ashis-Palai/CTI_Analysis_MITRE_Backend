@@ -6,10 +6,7 @@ from flask_cors import CORS
 from datetime import datetime
 
 app = Flask(__name__)
-CORS(app, origins=[
-    "https://ashis-palai.github.io",
-    "https://mango-moss-0c241dc00.6.azurestaticapps.net"
-])
+CORS(app, origins="https://mango-moss-0c241dc00.6.azurestaticapps.net")
 
 # Load the MITRE ATT&CK dataset
 with open("enterprise-attack.json", "r", encoding="utf-8") as f:
