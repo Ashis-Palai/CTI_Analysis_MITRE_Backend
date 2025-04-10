@@ -1,0 +1,30 @@
+trigger:
+  branches:
+    include:
+      - main  # or your branch
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.x'
+    addToPath: true
+
+- script: |
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+    echo "✅ Requirements installed"
+  displayName: 'Install dependencies'
+
+# Optional: Run tests if you have them
+# - script: pytest
+#   displayName: 'Run Tests'
+
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: 'first subscription'
+    appType: 'webAppLinux'
+    appName: 'mitre-backend-api'  # e.g., mitre-backend-api
+    package: '.'
