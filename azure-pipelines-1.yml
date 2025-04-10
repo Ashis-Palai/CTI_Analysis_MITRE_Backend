@@ -24,7 +24,7 @@ steps:
 
 - task: AzureWebApp@1
   inputs:
-    azureSubscription: 'first subscription'
+    azureSubscription: 'first-service-connection'
     appType: 'webAppLinux'
     appName: 'mitre-backend-api'  # e.g., mitre-backend-api
     package: '.'
